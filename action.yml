@@ -1,0 +1,19 @@
+name: 'Update Power Automate Flows'
+description: 'A Github Action to update the owner of Power Automate flows to an Application ID'
+author: 'John Raesly'
+inputs:
+  clientId:
+    description: 'The Application ID for the Power Automate flows'
+    required: true
+  clientSecret:
+    description: 'The Application Secret for the Power Automate flows'
+    required: true
+  environment:
+    description: 'The environment URL for the Power Automate flows'
+    required: true
+  retries:
+    description: 'The number of retries for the update operation'
+    required: false
+runs:
+  using: 'node12'
+  main: 'update-flows.js'
