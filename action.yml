@@ -8,7 +8,7 @@ inputs:
   clientSecret:
     description: 'The Application Secret for the Power Automate flows'
     required: true
-  environment:
+  tenantId:
     description: 'The environment URL for the Power Automate flows'
     required: true
   retries:

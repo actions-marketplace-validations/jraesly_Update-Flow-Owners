@@ -5,6 +5,7 @@ const clientId = args.clientId;
 const clientSecret = args.clientSecret;
 const tenantId = args.tenantId;
 
+
 const getAccessToken = async () => {
     const response = await axios({
         method: 'post',
