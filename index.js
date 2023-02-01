@@ -1,59 +1,57 @@
-const axios = require('axios');
-const args = require('yargs').argv;
+const axios = require("axios");
+const program = require("commander");
 
-const clientId = args.clientId;
-const clientSecret = args.clientSecret;
-const tenantId = args.tenantId;
-
+program
+    .option("--environment <environment>")
+    .option("--tenant_id <tenant_id>")
+    .option("--client_id <client_id>")
+    .option("--client_secret <client_secret>")
+    .parse(process.argv);
 
 const getAccessToken = async () => {
-    const response = await axios({
-        method: 'post',
-        url: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
-        data: `client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=https%3A%2F%2Fmanagement.core.windows.net%2F.default`,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-    });
-
+    const response = await axios.post("https://login.microsoftonline.com/" + program.tenant_id + "/oauth2/v2.0/token",
+        "grant_type=client_credentials&client_id=" + program.client_id + "&client_secret=" + program.client_secret + "&scope=https://management.azure.com/.default",
+        {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }
+    );
     return response.data.access_token;
 };
 
-const updateFlow = async (accessToken, flowId) => {
-    await axios({
-        method: 'patch',
-        url: `https://management.azure.com/providers/Microsoft.PowerAutomate/flows/${flowId}?api-version=2020-06-01`,
-        data: {
-            'properties': {
-                'owner': clientId
+const updateFlowOwner = async (flowId, ownerId, accessToken) => {
+    const response = await axios.patch("https://management.azure.com/providers/Microsoft.ProcessSimple/environments/" + program.environment + "/flows/" + flowId + "?api-version=2021-01-01-preview", {
+        properties: {
+            owner: {
+                id: ownerId
             }
-        },
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-        },
-    });
+        }
+    },
+        {
+            headers: {
+                Authorization: "Bearer " + accessToken
+            }
+        });
+    console.log("Flow updated successfully: " + flowId);
+};
+
+const getAllFlows = async (accessToken) => {
+    const response = await axios.get("https://management.azure.com/providers/Microsoft.ProcessSimple/environments/" + program.environment + "/flows?api-version=2021-01-01-preview",
+        {
+            headers: {
+                Authorization: "Bearer " + accessToken
+            }
+        });
+    return response.data.value;
 };
 
 const main = async () => {
     const accessToken = await getAccessToken();
-    const flowsResponse = await axios({
-        method: 'get',
-        url: `https://management.azure.com/providers/Microsoft.PowerAutomate/flows?api-version=2020-06-01`,
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-        },
-    });
-
-    const flows = flowsResponse.data.value;
-    for (const flow of flows) {
-        await updateFlow(accessToken, flow.id);
-        console.log(`Updated flow: ${flow.id}`);
+    const allFlows = await getAllFlows(accessToken);
+    for (const flow of allFlows) {
+        await updateFlowOwner(flow.id, program.client_id, accessToken);
     }
-
-    console.log('All flows updated');
 };
 
-main().catch(error => {
-    console.error(error);
-});
+main();
