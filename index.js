@@ -14,7 +14,7 @@ program
 async function generateBearerToken(clientId, clientSecret, tenantId, environmentId) {
     const response = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
         `client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=https://api.crm.dynamics.com/${environmentId}`);
-
+    console.log("Bearer token Acquired");
     return response.data.access_token;
 }
 
@@ -24,7 +24,7 @@ async function updateFlowOwners(bearerToken, orgUrl, ownerId) {
             Authorization: `Bearer ${bearerToken}`,
         },
     });
-
+    console.log(`Flows Retrieved. Count: ${flows.Count}`);
     flows.data.forEach(async flow => {
         const ownerId = `systemusers(${ownerId})`;
 
@@ -43,22 +43,24 @@ async function updateFlowOwners(bearerToken, orgUrl, ownerId) {
 }
 
 async function main(clientId, clientSecret, tenantId, orgUrl, environmentId) {
+    console.log("Entering main...")
     const clientId = core.getInput('clientId', { required: true });
     const clientSecret = core.getInput('clientSecret', { required: true });
     const tenantId = core.getInput('tenantId', { required: true });
     const orgUrl = core.getInput('orgUrl', { required: true });
     const environmentId = core.getInput('environmentId', { required: true });
     const ownerId = core.getInput('ownerId', { required: true });
-
+    console.log("Grabbed Variables Successfully");
     try {
         const bearerToken = await generateBearerToken(clientId, clientSecret, tenantId, environmentId);
         updateFlowOwners(bearerToken, orgUrl, ownerId);
+        console.log(`Flows Updated Successfully`);
+        console.log("Exiting....")
     }
     catch (error) {
         core.setFailed(error.message);
     }
 }
 
-module.exports = {
-    main,
-};
+// Call the main function to run the action
+main();
