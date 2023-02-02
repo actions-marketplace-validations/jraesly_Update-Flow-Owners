@@ -1,5 +1,5 @@
 # Update-Flow-Owners-Action
-GitHub Action to update all flows in an environment to a Service Principal.
+GitHub Action to update all flows in an environment to a systemuser ID
 
 ## Inputs
 
