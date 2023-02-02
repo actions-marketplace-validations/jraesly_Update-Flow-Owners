@@ -17,6 +17,9 @@ inputs:
   orgUrl:
     description: 'The organization url all the way to end of .com'
     required: true
+  ownerId:
+    description: 'Guid of the systemuser to set as Owner'
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'

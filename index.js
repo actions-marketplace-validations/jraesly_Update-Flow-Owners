@@ -18,7 +18,7 @@ async function generateBearerToken(clientId, clientSecret, tenantId, environment
     return response.data.access_token;
 }
 
-async function updateFlowOwners(bearerToken, orgUrl) {
+async function updateFlowOwners(bearerToken, orgUrl, ownerId) {
     const flows = await axios.get(`${orgUrl}/api/data/v9.1/workflows`, {
         headers: {
             Authorization: `Bearer ${bearerToken}`,
@@ -26,7 +26,7 @@ async function updateFlowOwners(bearerToken, orgUrl) {
     });
 
     flows.data.forEach(async flow => {
-        const ownerId = 'new_owner_guid';
+        const ownerId = `systemusers(${ownerId})`;
 
         await axios.patch(`${orgUrl}/api/data/v9.1/workflows(${flow.workflowid})`, {
             ownerid: ownerId,
@@ -48,9 +48,11 @@ async function main(clientId, clientSecret, tenantId, orgUrl, environmentId) {
     const tenantId = core.getInput('tenantId', { required: true });
     const orgUrl = core.getInput('orgUrl', { required: true });
     const environmentId = core.getInput('environmentId', { required: true });
+    const ownerId = core.getInput('ownerId', { required: true });
+
     try {
         const bearerToken = await generateBearerToken(clientId, clientSecret, tenantId, environmentId);
-        updateFlowOwners(bearerToken, orgUrl);
+        updateFlowOwners(bearerToken, orgUrl, ownerId);
     }
     catch (error) {
         core.setFailed(error.message);
