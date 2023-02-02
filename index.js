@@ -1,5 +1,6 @@
 const axios = require("axios");
-//const program = require("commander");
+const core = require('@actions/core');
+
 
 /*
 program
@@ -42,6 +43,11 @@ async function updateFlowOwners(bearerToken, orgUrl) {
 }
 
 async function main(clientId, clientSecret, tenantId, orgUrl, environmentId) {
+    const clientId = core.getInput('clientId', { required: true });
+    const clientSecret = core.getInput('clientSecret', { required: true });
+    const tenantId = core.getInput('tenantId', { required: true });
+    const orgUrl = core.getInput('orgUrl', { required: true });
+    const environmentId = core.getInput('environmentId', { required: true });
     const bearerToken = await generateBearerToken(clientId, clientSecret, tenantId, environmentId);
     updateFlowOwners(bearerToken, orgUrl);
 }
