@@ -8,12 +8,15 @@ inputs:
   clientSecret:
     description: 'The Application Secret for the Power Automate flows'
     required: true
-  environment:
-    description: 'The environment URL for the Power Automate flows'
+  tenantId:
+    description: 'The guid for the tenant'
     required: true
-  retries:
-    description: 'The number of retries for the update operation'
-    required: false
+  environmentId:
+    description: 'The environment Guid for the Power Automate flows'
+    required: true
+  orgUrl:
+    description: 'The organization url all the way to end of .com'
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'

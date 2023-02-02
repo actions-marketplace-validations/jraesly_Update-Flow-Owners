@@ -1,57 +1,51 @@
 const axios = require("axios");
-const program = require("commander");
+//const program = require("commander");
 
+/*
 program
-    .option("--environment <environment>")
+    .option("--environmentId <environmentId>")
     .option("--tenant_id <tenant_id>")
     .option("--client_id <client_id>")
     .option("--client_secret <client_secret>")
     .parse(process.argv);
+*/
 
-const getAccessToken = async () => {
-    const response = await axios.post("https://login.microsoftonline.com/" + program.tenant_id + "/oauth2/v2.0/token",
-        "grant_type=client_credentials&client_id=" + program.client_id + "&client_secret=" + program.client_secret + "&scope=https://management.azure.com/.default",
-        {
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            }
-        }
-    );
+async function generateBearerToken(clientId, clientSecret, tenantId, environmentId) {
+    const response = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+        `client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=https://api.crm.dynamics.com/${environmentId}`);
+
     return response.data.access_token;
-};
+}
 
-const updateFlowOwner = async (flowId, ownerId, accessToken) => {
-    const response = await axios.patch("https://management.azure.com/providers/Microsoft.ProcessSimple/environments/" + program.environment + "/flows/" + flowId + "?api-version=2021-01-01-preview", {
-        properties: {
-            owner: {
-                id: ownerId
-            }
-        }
-    },
-        {
+async function updateFlowOwners(bearerToken, orgUrl) {
+    const flows = await axios.get(`${orgUrl}/api/data/v9.1/workflows`, {
+        headers: {
+            Authorization: `Bearer ${bearerToken}`,
+        },
+    });
+
+    flows.data.forEach(async flow => {
+        const ownerId = 'new_owner_guid';
+
+        await axios.patch(`${orgUrl}/api/data/v9.1/workflows(${flow.workflowid})`, {
+            ownerid: ownerId,
+        }, {
             headers: {
-                Authorization: "Bearer " + accessToken
-            }
+                Authorization: `Bearer ${bearerToken}`,
+                'OData-Version': '4.0',
+                'Content-Type': 'application/json',
+                'OData-MaxVersion': '4.0',
+                'OData-EntityId': `workflows(${flow.workflowid})`,
+            },
         });
-    console.log("Flow updated successfully: " + flowId);
-};
+    });
+}
 
-const getAllFlows = async (accessToken) => {
-    const response = await axios.get("https://management.azure.com/providers/Microsoft.ProcessSimple/environments/" + program.environment + "/flows?api-version=2021-01-01-preview",
-        {
-            headers: {
-                Authorization: "Bearer " + accessToken
-            }
-        });
-    return response.data.value;
-};
+async function main(clientId, clientSecret, tenantId, orgUrl, environmentId) {
+    const bearerToken = await generateBearerToken(clientId, clientSecret, tenantId, environmentId);
+    updateFlowOwners(bearerToken, orgUrl);
+}
 
-const main = async () => {
-    const accessToken = await getAccessToken();
-    const allFlows = await getAllFlows(accessToken);
-    for (const flow of allFlows) {
-        await updateFlowOwner(flow.id, program.client_id, accessToken);
-    }
+module.exports = {
+    main,
 };
-
-main();
