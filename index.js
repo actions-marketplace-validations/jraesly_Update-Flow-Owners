@@ -48,8 +48,13 @@ async function main(clientId, clientSecret, tenantId, orgUrl, environmentId) {
     const tenantId = core.getInput('tenantId', { required: true });
     const orgUrl = core.getInput('orgUrl', { required: true });
     const environmentId = core.getInput('environmentId', { required: true });
-    const bearerToken = await generateBearerToken(clientId, clientSecret, tenantId, environmentId);
-    updateFlowOwners(bearerToken, orgUrl);
+    try {
+        const bearerToken = await generateBearerToken(clientId, clientSecret, tenantId, environmentId);
+        updateFlowOwners(bearerToken, orgUrl);
+    }
+    catch (error) {
+        core.setFailed(error.message);
+    }
 }
 
 module.exports = {
