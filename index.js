@@ -42,7 +42,7 @@ async function updateFlowOwners(bearerToken, orgUrl, ownerId) {
     });
 }
 
-async function main(clientId, clientSecret, tenantId, orgUrl, environmentId) {
+function main(clientId, clientSecret, tenantId, orgUrl, environmentId) {
     console.log("Entering main...")
     const clientId = core.getInput('clientId', { required: true });
     const clientSecret = core.getInput('clientSecret', { required: true });
